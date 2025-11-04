@@ -1,0 +1,42 @@
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars.backup
+.terraform/
+.terraform.lock.hcl
+tfplan*
+crash.log
+override.tf
+override.tf.json
+
+# Ansible
+*.retry
+.ansible/
+ansible.log
+*.pyc
+__pycache__/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Secrets
+*.pem
+*.key
+.env
+secrets/
+
+# Logs
+*.log
+logs/
+/tmp/
+
+# SSH
+known_hosts

@@ -1,0 +1,44 @@
+---
+- name: Create integration conf.d directory
+  file:
+    path: /etc/datadog-agent/conf.d
+    state: directory
+    mode: '0755'
+    owner: dd-agent
+    group: dd-agent
+  when: ansible_os_family != "Windows"
+
+- name: Configure Apache integration
+  template:
+    src: apache.yaml.j2
+    dest: /etc/datadog-agent/conf.d/apache.d/conf.yaml
+    mode: '0640'
+    owner: dd-agent
+    group: dd-agent
+  when:
+    - "'apache' in datadog_integrations"
+    - ansible_os_family != "Windows"
+  notify: restart datadog-agent
+
+- name: Enable Apache mod_status
+  apache2_module:
+    name: status
+    state: present
+  when:
+    - "'apache' in datadog_integrations"
+    - ansible_os_family == "Debian"
+  notify: restart apache
+
+- name: Configure system checks
+  copy:
+    content: |
+      init_config:
+      instances: [{}]
+    dest: /etc/datadog-agent/conf.d/system_core.d/conf.yaml
+    mode: '0640'
+    owner: dd-agent
+    group: dd-agent
+  when:
+    - "'system' in datadog_integrations"
+    - ansible_os_family != "Windows"
+  notify: restart datadog-agent

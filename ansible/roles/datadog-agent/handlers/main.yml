@@ -1,0 +1,11 @@
+---
+- name: restart datadog-agent
+  service:
+    name: "{{ datadog_service_name | default('datadog-agent') }}"
+    state: restarted
+
+- name: restart apache
+  service:
+    name: "{{ 'apache2' if ansible_os_family == 'Debian' else 'httpd' }}"
+    state: restarted
+  when: ansible_os_family != "Windows"

@@ -1,0 +1,15 @@
+---
+- name: Download Datadog Agent MSI
+  win_get_url:
+    url: "https://s3.amazonaws.com/ddagent-windows-stable/datadog-agent-{{ datadog_agent_version }}-latest.amd64.msi"
+    dest: 'C:\Windows\Temp\datadog-agent.msi'
+
+- name: Install Datadog Agent
+  win_package:
+    path: 'C:\Windows\Temp\datadog-agent.msi'
+    arguments: '/qn APIKEY="{{ datadog_api_key }}" SITE="{{ datadog_site }}"'
+    state: present
+
+- name: Set Datadog service name
+  set_fact:
+    datadog_service_name: "datadogagent"

@@ -1,0 +1,31 @@
+---
+- name: Install dependencies
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+    state: present
+    update_cache: yes
+
+- name: Add Datadog GPG key
+  apt_key:
+    url: "https://keys.datadoghq.com/DATADOG_APT_KEY_CURRENT.public"
+    state: present
+
+- name: Add Datadog APT repository
+  apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/datadog-archive-keyring.gpg] https://apt.datadoghq.com/ stable {{ datadog_agent_version }}"
+    state: present
+    filename: datadog
+
+- name: Install Datadog Agent
+  apt:
+    name: datadog-agent
+    state: present
+    update_cache: yes
+
+- name: Set Datadog service name
+  set_fact:
+    datadog_service_name: "datadog-agent"

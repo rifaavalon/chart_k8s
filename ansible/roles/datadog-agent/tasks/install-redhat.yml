@@ -1,0 +1,22 @@
+---
+- name: Add Datadog YUM repository
+  yum_repository:
+    name: datadog
+    description: Datadog Repository
+    baseurl: "https://yum.datadoghq.com/stable/{{ datadog_agent_version }}/{{ ansible_architecture }}/"
+    enabled: yes
+    gpgcheck: yes
+    gpgkey:
+      - "https://keys.datadoghq.com/DATADOG_RPM_KEY_CURRENT.public"
+      - "https://keys.datadoghq.com/DATADOG_RPM_KEY_B01082D3.public"
+      - "https://keys.datadoghq.com/DATADOG_RPM_KEY_FD4BF915.public"
+
+- name: Install Datadog Agent
+  yum:
+    name: datadog-agent
+    state: present
+    update_cache: yes
+
+- name: Set Datadog service name
+  set_fact:
+    datadog_service_name: "datadog-agent"

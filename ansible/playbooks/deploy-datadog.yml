@@ -1,0 +1,43 @@
+---
+- name: Deploy Datadog Agent
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  vars:
+    datadog_api_key: "{{ lookup('env', 'DD_API_KEY') }}"
+    datadog_site: "{{ lookup('env', 'DD_SITE') | default('datadoghq.com', true) }}"
+
+  pre_tasks:
+    - name: Validate Datadog API key is set
+      fail:
+        msg: "Datadog API key must be set in DD_API_KEY environment variable"
+      when: datadog_api_key == ""
+
+    - name: Display deployment information
+      debug:
+        msg:
+          - "Environment: {{ environment | default('undefined') }}"
+          - "Datadog Site: {{ datadog_site }}"
+          - "Target Host: {{ inventory_hostname }}"
+
+  roles:
+    - role: datadog-agent
+
+  post_tasks:
+    - name: Verify Datadog agent is running
+      service:
+        name: datadog-agent
+        state: started
+        enabled: yes
+
+    - name: Check agent status
+      command: datadog-agent status
+      register: agent_status
+      changed_when: false
+      failed_when: false
+
+    - name: Display agent status summary
+      debug:
+        msg: "Datadog agent successfully deployed and running"
+      when: agent_status.rc == 0

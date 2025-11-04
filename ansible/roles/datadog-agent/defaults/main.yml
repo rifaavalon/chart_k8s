@@ -1,0 +1,36 @@
+---
+# Datadog Agent Role Default Variables
+
+datadog_api_key: ""
+datadog_site: "datadoghq.com"
+datadog_agent_version: "7"
+
+# Agent configuration
+datadog_config:
+  log_level: "info"
+  hostname: "{{ ansible_hostname }}"
+  tags:
+    - "env:{{ environment | default('dev') }}"
+    - "role:webserver"
+    - "managed:ansible"
+
+# APM configuration
+datadog_apm_enabled: true
+datadog_apm_port: 8126
+
+# Log collection
+datadog_logs_enabled: true
+
+# Process monitoring
+datadog_process_enabled: true
+
+# Network performance monitoring
+datadog_npm_enabled: false
+
+# Custom checks
+datadog_checks: {}
+
+# Integration configurations
+datadog_integrations:
+  - apache
+  - system

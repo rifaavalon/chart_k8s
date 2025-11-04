@@ -1,0 +1,28 @@
+---
+- name: Include OS-specific variables
+  include_vars: "{{ ansible_os_family }}.yml"
+  failed_when: false
+
+- name: Install Datadog Agent on Debian/Ubuntu
+  include_tasks: install-debian.yml
+  when: ansible_os_family == "Debian"
+
+- name: Install Datadog Agent on RedHat/CentOS
+  include_tasks: install-redhat.yml
+  when: ansible_os_family == "RedHat"
+
+- name: Install Datadog Agent on Windows
+  include_tasks: install-windows.yml
+  when: ansible_os_family == "Windows"
+
+- name: Configure Datadog Agent
+  include_tasks: configure.yml
+
+- name: Setup integrations
+  include_tasks: integrations.yml
+
+- name: Ensure Datadog Agent is running
+  service:
+    name: "{{ datadog_service_name }}"
+    state: started
+    enabled: yes
