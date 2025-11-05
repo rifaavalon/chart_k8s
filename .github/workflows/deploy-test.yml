@@ -121,10 +121,10 @@ jobs:
           ansible-playbook \
             -i inventory/${{ env.ENVIRONMENT }}.ini \
             playbooks/deploy-datadog.yml \
+            -e "datadog_api_key=${{ secrets.DD_API_KEY }}" \
+            -e "datadog_site=datadoghq.com" \
             -v
         env:
-          DD_API_KEY: ${{ secrets.DD_API_KEY }}
-          DD_SITE: datadoghq.com
           ANSIBLE_HOST_KEY_CHECKING: False
 
       - name: Verify Agent Deployment

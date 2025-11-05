@@ -134,10 +134,10 @@ jobs:
           ansible-playbook \
             -i inventory/prod-batch1.ini \
             playbooks/deploy-datadog.yml \
+            -e "datadog_api_key=${{ secrets.DD_API_KEY }}" \
+            -e "datadog_site=datadoghq.com" \
             -v
         env:
-          DD_API_KEY: ${{ secrets.DD_API_KEY }}
-          DD_SITE: datadoghq.com
           ANSIBLE_HOST_KEY_CHECKING: False
 
       - name: Verify Batch 1
@@ -216,10 +216,10 @@ jobs:
           ansible-playbook \
             -i inventory/prod-batch2.ini \
             playbooks/deploy-datadog.yml \
+            -e "datadog_api_key=${{ secrets.DD_API_KEY }}" \
+            -e "datadog_site=datadoghq.com" \
             -v
         env:
-          DD_API_KEY: ${{ secrets.DD_API_KEY }}
-          DD_SITE: datadoghq.com
           ANSIBLE_HOST_KEY_CHECKING: False
 
       - name: Verify Batch 2
@@ -299,10 +299,10 @@ jobs:
           ansible-playbook \
             -i inventory/prod-batch3.ini \
             playbooks/deploy-datadog.yml \
+            -e "datadog_api_key=${{ secrets.DD_API_KEY }}" \
+            -e "datadog_site=datadoghq.com" \
             -v
         env:
-          DD_API_KEY: ${{ secrets.DD_API_KEY }}
-          DD_SITE: datadoghq.com
           ANSIBLE_HOST_KEY_CHECKING: False
 
       - name: Verify Batch 3
