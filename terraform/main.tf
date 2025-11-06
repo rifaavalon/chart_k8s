@@ -103,6 +103,14 @@ module "rds" {
   db_password            = var.db_password
 }
 
+# Datadog AWS Integration (for RDS, ECS CloudWatch metrics)
+module "datadog_aws_integration" {
+  source = "./modules/datadog-aws-integration"
+
+  environment          = var.environment
+  datadog_external_id  = var.datadog_external_id
+}
+
 module "datadog" {
   source = "./modules/datadog"
 

@@ -65,3 +65,10 @@ variable "db_password" {
   sensitive   = true
   default     = "placeholder"  # Set via GitHub Secret when enabling RDS module
 }
+
+variable "datadog_external_id" {
+  description = "Datadog AWS External ID for secure role assumption (optional - auto-generated if not provided)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
