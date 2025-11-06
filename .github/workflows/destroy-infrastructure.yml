@@ -1,0 +1,100 @@
+name: Destroy Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to destroy'
+        required: true
+        type: choice
+        options:
+          - dev
+          - test
+          - prod
+      confirm:
+        description: 'Type the environment name to confirm destruction'
+        required: true
+        type: string
+
+env:
+  AWS_REGION: us-east-1
+  TF_VERSION: 1.5.0
+
+jobs:
+  validate-confirmation:
+    name: Validate Confirmation
+    runs-on: ubuntu-latest
+    outputs:
+      confirmed: ${{ steps.check.outputs.confirmed }}
+    steps:
+      - name: Check confirmation
+        id: check
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" == "${{ github.event.inputs.environment }}" ]; then
+            echo "confirmed=true" >> $GITHUB_OUTPUT
+            echo "✅ Confirmation matched"
+          else
+            echo "confirmed=false" >> $GITHUB_OUTPUT
+            echo "❌ Confirmation does not match environment name"
+            exit 1
+          fi
+
+  destroy-infrastructure:
+    name: Destroy ${{ github.event.inputs.environment }} Infrastructure
+    runs-on: ubuntu-latest
+    needs: validate-confirmation
+    if: needs.validate-confirmation.outputs.confirmed == 'true'
+    timeout-minutes: 30
+    environment: ${{ github.event.inputs.environment == 'prod' && 'production' || github.event.inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        working-directory: ./terraform
+        run: |
+          terraform init \
+            -backend-config=environments/${{ github.event.inputs.environment }}/backend.hcl
+
+      - name: Terraform Plan Destroy
+        working-directory: ./terraform
+        run: |
+          terraform plan -destroy \
+            -var-file=environments/${{ github.event.inputs.environment }}/terraform.tfvars \
+            -var="datadog_api_key=${{ secrets.DD_API_KEY }}" \
+            -out=destroy.tfplan
+
+      - name: Terraform Destroy
+        working-directory: ./terraform
+        run: terraform apply -auto-approve destroy.tfplan
+
+      - name: Destruction Summary
+        if: always()
+        run: |
+          echo "## 🗑️ Infrastructure Destruction Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ All resources have been destroyed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Destruction failed - manual cleanup may be required" >> $GITHUB_STEP_SUMMARY
+          fi
