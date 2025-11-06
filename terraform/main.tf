@@ -104,12 +104,13 @@ module "rds" {
 }
 
 # Datadog AWS Integration (for RDS, ECS CloudWatch metrics)
-module "datadog_aws_integration" {
-  source = "./modules/datadog-aws-integration"
-
-  environment          = var.environment
-  datadog_external_id  = var.datadog_external_id
-}
+# COMMENTED OUT - Configure manually in Datadog UI
+# module "datadog_aws_integration" {
+#   source = "./modules/datadog-aws-integration"
+#
+#   environment          = var.environment
+#   datadog_external_id  = var.datadog_external_id
+# }
 
 module "datadog" {
   source = "./modules/datadog"
