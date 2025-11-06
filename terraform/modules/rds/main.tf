@@ -40,7 +40,7 @@ resource "aws_security_group" "rds" {
 resource "aws_db_instance" "main" {
   identifier     = "${var.environment}-demo-db"
   engine         = "postgres"
-  engine_version = "15.4"
+  engine_version = "16.3"  # Use major version 16 (latest stable)
   instance_class = var.instance_class
 
   allocated_storage     = 20
