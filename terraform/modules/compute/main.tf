@@ -44,6 +44,14 @@ resource "aws_security_group" "instance" {
   }
 
   ingress {
+    from_port   = 5985
+    to_port     = 5986
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "WinRM for Ansible (HTTP and HTTPS)"
+  }
+
+  ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -162,8 +170,20 @@ resource "aws_instance" "windows" {
     # Create simple webpage
     Set-Content -Path "C:\inetpub\wwwroot\index.html" -Value "<h1>Hello from ${var.environment} - Windows Server</h1>"
 
-    # Download and install Datadog Agent (will be configured via Ansible)
-    # Placeholder for Datadog agent installation
+    # Enable WinRM for Ansible
+    winrm quickconfig -q
+    winrm set winrm/config/service '@{AllowUnencrypted="true"}'
+    winrm set winrm/config/service/auth '@{Basic="true"}'
+
+    # Set Administrator password (retrieve from Secrets Manager in production)
+    # For demo, use a temporary password that will be changed via Ansible
+
+    # Configure firewall for WinRM
+    netsh advfirewall firewall add rule name="WinRM-HTTP" dir=in localport=5985 protocol=TCP action=allow
+    netsh advfirewall firewall add rule name="WinRM-HTTPS" dir=in localport=5986 protocol=TCP action=allow
+
+    # Restart WinRM service
+    Restart-Service winrm
     </powershell>
     EOF
 
