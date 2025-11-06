@@ -46,6 +46,9 @@ jobs:
 
       - name: Terraform Plan
         working-directory: ./terraform
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+          DD_APP_KEY: ${{ secrets.DD_APP_KEY }}
         run: |
           terraform plan \
             -var-file=environments/${{ env.ENVIRONMENT }}/terraform.tfvars \
@@ -55,6 +58,9 @@ jobs:
 
       - name: Terraform Apply
         working-directory: ./terraform
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+          DD_APP_KEY: ${{ secrets.DD_APP_KEY }}
         run: |
           terraform apply -auto-approve \
             -var-file=environments/${{ env.ENVIRONMENT }}/terraform.tfvars \
