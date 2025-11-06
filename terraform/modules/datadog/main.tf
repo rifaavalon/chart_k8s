@@ -445,3 +445,224 @@ resource "datadog_service_level_objective" "availability" {
     "team:platform"
   ]
 }
+
+# ECS Monitors
+resource "datadog_monitor" "ecs_cpu_high" {
+  count = var.enable_ecs_monitoring ? 1 : 0
+
+  name    = "[${var.environment}] ECS Task CPU High"
+  type    = "metric alert"
+  message = <<-EOT
+    ECS task CPU is above 80% in ${var.environment}
+
+    Service: {{ecs_service_name.name}}
+    Task: {{ecs_task_family.name}}
+
+    @slack-datadog-alerts
+  EOT
+
+  query = "avg(last_5m):avg:ecs.fargate.cpu.percent{env:${var.environment}} by {ecs_service_name,ecs_task_family} > 80"
+
+  monitor_thresholds {
+    critical = 80
+    warning  = 70
+  }
+
+  notify_no_data = false
+
+  tags = [
+    "env:${var.environment}",
+    "service:ecs",
+    "team:platform"
+  ]
+}
+
+resource "datadog_monitor" "ecs_memory_high" {
+  count = var.enable_ecs_monitoring ? 1 : 0
+
+  name    = "[${var.environment}] ECS Task Memory High"
+  type    = "metric alert"
+  message = <<-EOT
+    ECS task memory is above 80% in ${var.environment}
+
+    Service: {{ecs_service_name.name}}
+    Task: {{ecs_task_family.name}}
+
+    @slack-datadog-alerts
+  EOT
+
+  query = "avg(last_5m):avg:ecs.fargate.mem.usage{env:${var.environment}} by {ecs_service_name,ecs_task_family} > 80"
+
+  monitor_thresholds {
+    critical = 80
+    warning  = 70
+  }
+
+  notify_no_data = false
+
+  tags = [
+    "env:${var.environment}",
+    "service:ecs",
+    "team:platform"
+  ]
+}
+
+resource "datadog_monitor" "ecs_task_failed" {
+  count = var.enable_ecs_monitoring ? 1 : 0
+
+  name    = "[${var.environment}] ECS Tasks Failing"
+  type    = "metric alert"
+  message = <<-EOT
+    ECS tasks are failing in ${var.environment}
+
+    Service: {{ecs_service_name.name}}
+
+    Check ECS console for task errors
+
+    @slack-datadog-alerts
+    @pagerduty-critical
+  EOT
+
+  query = "sum(last_5m):diff(sum:aws.ecs.service.running{env:${var.environment}} by {ecs_service_name}) < -1"
+
+  monitor_thresholds {
+    critical = -1
+  }
+
+  notify_no_data = false
+
+  tags = [
+    "env:${var.environment}",
+    "service:ecs",
+    "team:platform"
+  ]
+}
+
+# RDS Monitors
+resource "datadog_monitor" "rds_cpu_high" {
+  count = var.enable_rds_monitoring ? 1 : 0
+
+  name    = "[${var.environment}] RDS CPU High"
+  type    = "metric alert"
+  message = <<-EOT
+    RDS CPU is above 80% in ${var.environment}
+
+    Database: {{dbinstanceidentifier.name}}
+
+    Consider scaling up the instance or optimizing queries
+
+    @slack-datadog-alerts
+  EOT
+
+  query = "avg(last_10m):avg:aws.rds.cpuutilization{env:${var.environment}} by {dbinstanceidentifier} > 80"
+
+  monitor_thresholds {
+    critical = 80
+    warning  = 70
+  }
+
+  notify_no_data = false
+
+  tags = [
+    "env:${var.environment}",
+    "service:rds",
+    "team:platform"
+  ]
+}
+
+resource "datadog_monitor" "rds_connections_high" {
+  count = var.enable_rds_monitoring ? 1 : 0
+
+  name    = "[${var.environment}] RDS High Connection Count"
+  type    = "metric alert"
+  message = <<-EOT
+    RDS connection count is high in ${var.environment}
+
+    Database: {{dbinstanceidentifier.name}}
+    Current: {{value}} connections
+
+    May need to increase max_connections or investigate connection leaks
+
+    @slack-datadog-alerts
+  EOT
+
+  query = "avg(last_5m):avg:aws.rds.database_connections{env:${var.environment}} by {dbinstanceidentifier} > 80"
+
+  monitor_thresholds {
+    critical = 80
+    warning  = 60
+  }
+
+  notify_no_data = false
+
+  tags = [
+    "env:${var.environment}",
+    "service:rds",
+    "team:platform"
+  ]
+}
+
+resource "datadog_monitor" "rds_storage_low" {
+  count = var.enable_rds_monitoring ? 1 : 0
+
+  name    = "[${var.environment}] RDS Low Free Storage"
+  type    = "metric alert"
+  message = <<-EOT
+    RDS free storage is below 20% in ${var.environment}
+
+    Database: {{dbinstanceidentifier.name}}
+    Free space: {{value}} bytes
+
+    Consider increasing allocated storage
+
+    @slack-datadog-alerts
+    @pagerduty-infrastructure
+  EOT
+
+  query = "avg(last_15m):avg:aws.rds.free_storage_space{env:${var.environment}} by {dbinstanceidentifier} < 2000000000"
+
+  monitor_thresholds {
+    critical = 2000000000  # 2GB
+    warning  = 5000000000  # 5GB
+  }
+
+  notify_no_data = false
+
+  tags = [
+    "env:${var.environment}",
+    "service:rds",
+    "team:platform"
+  ]
+}
+
+resource "datadog_monitor" "rds_replica_lag" {
+  count = var.enable_rds_monitoring ? 1 : 0
+
+  name    = "[${var.environment}] RDS Replica Lag High"
+  type    = "metric alert"
+  message = <<-EOT
+    RDS read replica lag is high in ${var.environment}
+
+    Database: {{dbinstanceidentifier.name}}
+    Lag: {{value}} seconds
+
+    Check replica health and network connectivity
+
+    @slack-datadog-alerts
+  EOT
+
+  query = "avg(last_5m):avg:aws.rds.replica_lag{env:${var.environment}} by {dbinstanceidentifier} > 30"
+
+  monitor_thresholds {
+    critical = 30  # 30 seconds
+    warning  = 10  # 10 seconds
+  }
+
+  notify_no_data = false
+
+  tags = [
+    "env:${var.environment}",
+    "service:rds",
+    "team:platform"
+  ]
+}

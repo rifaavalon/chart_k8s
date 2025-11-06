@@ -70,10 +70,42 @@ module "alb" {
   instance_ids      = module.compute.instance_ids
 }
 
+## UNCOMMENT FOR DEMO: ECS + RDS with Datadog Monitoring
+## Before uncommenting, add these GitHub Secrets:
+## - DD_APP_KEY 
+## - DB_PASSWORD 
+
+# # ECS Service with Datadog sidecar
+module "ecs" {
+  source = "./modules/ecs"
+
+  environment             = var.environment
+  vpc_id                  = module.vpc.vpc_id
+  private_subnet_ids      = module.vpc.private_subnet_ids
+  alb_security_group_id   = module.alb.alb_security_group_id
+  target_group_arn        = module.alb.target_group_arn
+  datadog_api_key         = var.datadog_api_key
+  datadog_site            = var.datadog_site
+  aws_region              = var.aws_region
+}
+#
+# # RDS PostgreSQL Database
+# module "rds" {
+#   source = "./modules/rds"
+#
+#   environment            = var.environment
+#   vpc_id                 = module.vpc.vpc_id
+#   private_subnet_ids     = module.vpc.private_subnet_ids
+#   ecs_security_group_id  = module.ecs.security_group_id
+#   db_password            = var.db_password
+# }
+
 module "datadog" {
   source = "./modules/datadog"
 
-  environment      = var.environment
-  datadog_api_key  = var.datadog_api_key
-  datadog_app_key  = var.datadog_app_key
+  environment           = var.environment
+  datadog_api_key       = var.datadog_api_key
+  datadog_app_key       = var.datadog_app_key
+  enable_ecs_monitoring = true 
+  enable_rds_monitoring = false  
 }

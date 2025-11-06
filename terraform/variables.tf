@@ -58,3 +58,10 @@ variable "datadog_site" {
   type        = string
   default     = "us5.datadoghq.com"
 }
+
+variable "db_password" {
+  description = "RDS database password (sensitive) - only needed when RDS module is enabled"
+  type        = string
+  sensitive   = true
+  default     = "placeholder"  # Set via GitHub Secret when enabling RDS module
+}

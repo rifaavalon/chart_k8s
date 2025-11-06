@@ -14,3 +14,15 @@ variable "datadog_app_key" {
   type        = string
   sensitive   = true
 }
+
+variable "enable_ecs_monitoring" {
+  description = "Enable ECS-specific Datadog monitors"
+  type        = bool
+  default     = false
+}
+
+variable "enable_rds_monitoring" {
+  description = "Enable RDS-specific Datadog monitors"
+  type        = bool
+  default     = false
+}
