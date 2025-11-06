@@ -6,10 +6,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
-    datadog = {
-      source  = "DataDog/datadog"
-      version = "~> 3.0"
-    }
+    # datadog = {
+    #   source  = "DataDog/datadog"
+    #   version = "~> 3.0"
+    # }
   }
 
   # Backend configuration - can be overridden via -backend-config flags
@@ -34,14 +34,13 @@ provider "aws" {
   }
 }
 
-provider "datadog" {
-  api_key  = var.datadog_api_key
-  app_key  = var.datadog_app_key
-  api_url  = "https://api.us5.datadoghq.com/"  # US5 site
-  validate = false  # Allow provider to be configured without validating credentials during plan
-}
+# provider "datadog" {
+#   api_key  = var.datadog_api_key
+#   app_key  = var.datadog_app_key
+#   api_url  = "https://api.us5.datadoghq.com/"  # US5 site
+#   validate = false  # Allow provider to be configured without validating credentials during plan
+# }
 
-# VPC Module
 module "vpc" {
   source = "./modules/vpc"
 
@@ -50,7 +49,6 @@ module "vpc" {
   availability_zones = var.availability_zones
 }
 
-# EC2 Instances Module
 module "compute" {
   source = "./modules/compute"
 
@@ -63,7 +61,6 @@ module "compute" {
   key_name          = var.key_name
 }
 
-# Application Load Balancer
 module "alb" {
   source = "./modules/alb"
 
@@ -73,11 +70,10 @@ module "alb" {
   instance_ids      = module.compute.instance_ids
 }
 
-# Datadog Monitors and Dashboards
-module "datadog" {
-  source = "./modules/datadog"
+# module "datadog" {
+#   source = "./modules/datadog"
 
-  environment      = var.environment
-  datadog_api_key  = var.datadog_api_key
-  datadog_app_key  = var.datadog_app_key
-}
+#   environment      = var.environment
+#   datadog_api_key  = var.datadog_api_key
+#   datadog_app_key  = var.datadog_app_key
+# }
