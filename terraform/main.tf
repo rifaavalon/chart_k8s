@@ -35,9 +35,10 @@ provider "aws" {
 }
 
 provider "datadog" {
-  api_key = var.datadog_api_key
-  app_key = var.datadog_app_key
-  api_url = "https://api.us5.datadoghq.com/"  # US5 site
+  api_key  = var.datadog_api_key
+  app_key  = var.datadog_app_key
+  api_url  = "https://api.us5.datadoghq.com/"  # US5 site
+  validate = false  # Allow provider to be configured without validating credentials during plan
 }
 
 # VPC Module
