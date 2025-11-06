@@ -74,14 +74,21 @@ jobs:
 
       - name: Terraform Plan Destroy
         working-directory: ./terraform
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+          DD_APP_KEY: ${{ secrets.DD_APP_KEY }}
         run: |
           terraform plan -destroy \
             -var-file=environments/${{ github.event.inputs.environment }}/terraform.tfvars \
             -var="datadog_api_key=${{ secrets.DD_API_KEY }}" \
+            -var="datadog_app_key=${{ secrets.DD_APP_KEY }}" \
             -out=destroy.tfplan
 
       - name: Terraform Destroy
         working-directory: ./terraform
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+          DD_APP_KEY: ${{ secrets.DD_APP_KEY }}
         run: terraform apply -auto-approve destroy.tfplan
 
       - name: Destruction Summary
