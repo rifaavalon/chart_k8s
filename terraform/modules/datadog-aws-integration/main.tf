@@ -86,21 +86,46 @@ resource "aws_iam_role_policy" "datadog_integration_additional" {
   })
 }
 
-# Configure Datadog AWS Integration
-resource "datadog_integration_aws" "main" {
+# Configure Datadog AWS Integration (using new resource)
+resource "datadog_integration_aws_account" "main" {
   account_id = data.aws_caller_identity.current.account_id
-  role_name  = aws_iam_role.datadog_integration.name
 
-  filter_tags = ["env:${var.environment}"]
-  host_tags   = ["environment:${var.environment}", "managed:terraform"]
+  aws_regions {
+    include_all = true
+  }
 
-  account_specific_namespace_rules = {
-    auto_scaling = true
-    ecs          = true
-    elb          = true
-    lambda       = true
-    rds          = true
-    ec2          = true
+  auth_config {
+    role_name = aws_iam_role.datadog_integration.name
+  }
+
+  aws_account_tags = ["env:${var.environment}", "managed:terraform"]
+
+  metrics_config {
+    enabled = true
+
+    namespace_filters {
+      exclude_only = []
+      include_only = [
+        "AWS/EC2",
+        "AWS/ECS",
+        "AWS/RDS",
+        "AWS/ELB",
+        "AWS/ApplicationELB",
+        "AWS/Lambda",
+        "AWS/AutoScaling"
+      ]
+    }
+  }
+
+  resources_config {
+    cloud_security_posture_management_collection = false
+    extended_collection                           = true
+  }
+
+  traces_config {
+    xray_services {
+      include_all = false
+    }
   }
 
   depends_on = [
