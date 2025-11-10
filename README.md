@@ -584,12 +584,4 @@ journalctl -u kubelet -f
 - [Kubernetes Documentation](https://kubernetes.io/docs/)
 - [EKS Best Practices Guide](https://aws.github.io/aws-eks-best-practices/)
 
-## Support
 
-For issues and questions:
-- Create an issue in the repository
-- Contact: DL-DPDATA-DataScience-ML-Ops@charter.com
-
----
-
-**Generated with Terraform and configured for production-ready EKS deployments**
